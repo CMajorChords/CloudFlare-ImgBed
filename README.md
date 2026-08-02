@@ -1,7 +1,7 @@
 <div align="center">
     <a href="https://github.com/MarSeventh/CloudFlare-ImgBed"><img width="80%" alt="logo" src="readme/banner.png" /></a>
-    <p><em>🗂️Open-source file hosting solution, supporting Docker and serverless deployment, supporting multiple storage channels such as Telegram, Discord, Cloudflare R2, S3, Huggingface, WebDAV, etc., providing RESTful APIs and WebDAV support.</em></p>
-    <p >
+    <p><em>🗂️ An open-source file hosting solution for Docker and serverless environments, with multiple storage backends, a RESTful API, and WebDAV support.</em></p>
+    <p>
         <a href="https://github.com/MarSeventh/CloudFlare-ImgBed/blob/main/README_zh.md">简体中文</a> | <a href="https://github.com/MarSeventh/CloudFlare-ImgBed/blob/main/README.md">English</a> | <a href="https://cfbed.sanyue.de/en">Official Website</a>
     </p>
     <p align="center">
@@ -19,196 +19,173 @@
     </p>
 </div>
 
-
-
-
-
 ---
 
 > [!IMPORTANT]
 >
-> **If you encounter issues, please check the announcement first. Important notifications and non-compatible updates will be explained in the announcement!**
+> **If you encounter issues, please check the [announcement](https://github.com/MarSeventh/CloudFlare-ImgBed/discussions/categories/announcements) first. Important notifications and non-compatible updates will be explained in the announcement!**
 
 
-<details>
-    <summary>Announcement</summary>
+# 1. 💡 Introduction
 
-## Pinned
-
-1. If you encounter issues during deployment or usage, please carefully read the documentation, FAQ, and existing issues first.
-2. **Note**: This repository is a remake of the [Telegraph-Image](https://github.com/cf-pages/Telegraph-Image) project. If you like this project, please support the original one as well.
-
-## V2.7.1+ Cloudflare Pages Build Output Directory Change
-
-> Starting from v2.7.1, frontend build output has been moved to the `frontend-dist` directory. **Cloudflare Pages users** need to manually update the build configuration:
->
-> 1. Go to Cloudflare Dashboard → Your Pages project → `Settings` → `Build`
-> 2. Edit `Build configuration`, change `Build output directory` from `/` to `/frontend-dist`
-> 3. Save and redeploy
->
-> Docker and Workers users are not affected.
-
-## 2026.3.4 V2.6.2 Docker Image Rebuild Notice
-
-> The Docker image has been rebuilt in this release, involving changes to the base image, directory structure, and database, bringing optimizations in concurrency, memory management, and more. To ensure data safety, please **back up your data before upgrading**.
->
-> ### Before Upgrading: Back Up Data
->
-> 1. Back up data: Download the backup file from the admin panel (if you were using local R2 storage, you need to download and re-upload all files)
-> 2. Back up the data folder
->
-> ### Upgrade Steps
->
-> 1. Pull the latest image:
->
->    ```bash
->    docker compose pull
->    ```
->
-> 2. Start the container with the new image:
->
->    ```bash
->    docker compose up -d
->    ```
->
-> 3. Verify the container is running properly:
->
->    ```bash
->    docker compose logs -f
->    ```
->
->    Once you confirm there are no errors in the logs, you're good to go.
->
-> 4. Restore data: Restore all data from the admin panel (R2 files from the old version need to be re-uploaded)
-> 
-> ### Rollback to Previous Version
->
-> If something goes wrong after upgrading, follow these steps to roll back:
->
-> 1. Stop the container:
->
->    ```bash
->    docker compose down
->    ```
->
-> 2. Pull the previous image version:
->
->    ```bash
->    # amd64
->    docker pull marseventh/cloudflare-imgbed@sha256:896dc1b79883
->    # arm
->    docker pull marseventh/cloudflare-imgbed@sha256:b5442ccc198c
->    ```
->
->    Also update the `image` field in `docker-compose.yml` to the old version tag, then restart:
->
->    ```bash
->    docker compose up -d
->    ```
->
-> **Notes**:
-> - Make sure the backup is complete before upgrading, and back up the data folder if necessary
-> - If you have a custom `docker-compose.yml` (e.g., custom ports, environment variables), preserve those settings during the upgrade
-> - For issues, please check the documentation and existing issues first, or submit a new issue
-
-## 2025.2.6 Version 2.0 Upgrade Notes
-
-> The v2.0 version has been released, with many changes and optimizations compared to v1.0. However, the beta version may have potential instability. If you prefer stability, you may delay updating.
->
-> Due to **changes in the build command**, this update requires **manual operation**. Please follow these steps:
->
-> - Sync your forked repository to the latest version (ignore if already synced automatically)
-> - Go to the Pages management page, enter `Settings` -> `Build`, edit the `Build configuration`, and set the `Build command` to `npm install`
-> - All new version settings have been **migrated to the Admin Panel -> System Settings** interface, so generally no need to configure environment variables anymore. Settings made in the system settings interface will **override** environment variable settings. However, to ensure compatibility of images uploaded via the Telegram channel with the old version, **please keep any previously set Telegram-related environment variables!**
-> - After confirming the above settings are correct, go to the Pages management page, enter `Deployments`, and `Retry` the last failed deployment.
-
-## Notification About Switching to Telegram Channel
-
-> Due to abuse of the telegraph image hosting, the upload channel has switched to Telegram Channel. Please **update to the latest version (see the last section of chapter 3.1 for update instructions)** and set `TG_BOT_TOKEN` and `TG_CHAT_ID` according to the deployment requirements in the documentation, otherwise upload functionality will not work.
->
-> Also, the **KV database is now mandatory**; if not configured before, please configure it as per the documentation.
->
-> For issues, please check section 5 FAQ first.
-
-</details>
-
-
-
-# 1. Introduction
-
-Free file hosting solution with full lifecycle features including **upload**, **management**, **read**, and **delete**, supporting **authentication**, **directories**, **image moderation**, **random images**, and other features (see [Feature Docs](https://cfbed.sanyue.de/en/guide/features.html) for details).
+CloudFlare ImgBed is a self-hosted image and file hosting solution for Docker and serverless environments, bringing **Telegram**, **Discord**, **Cloudflare R2**, **S3-compatible storage**, **Hugging Face**, **WebDAV**, and more into one management interface. It provides file management, authentication, directory organization, content moderation, a RESTful API, and WebDAV for personal image hosting, website asset management, and lightweight file distribution. **[View all features →](https://cfbed.sanyue.de/en/guide/features.html)**
 
 ![CloudFlare](readme/海报.png)
 
-# 2. [Document](https://cfbed.sanyue.de/en)
+## 🤝 Partners
 
-Provides detailed deployment documentation, feature docs, development plans, update logs, FAQ, and more to help you get started quickly.
+<table width="100%">
+  <tr>
+    <td align="center" width="20%">
+      <strong><a href="https://www.cloudflare.com/">Cloudflare</a></strong>
+    </td>
+    <td align="center" width="20%">
+      <strong><a href="https://edgeone.ai/?from=github">EdgeOne</a></strong>
+    </td>
+    <td align="center" width="20%">
+      <strong><a href="https://www.hncloud.com/activity/activity_2026summer.html?k=MarSeventh">HuaNa Cloud</a></strong>
+    </td>
+    <td align="center" width="20%">
+      <strong><a href="https://www.svyun.com/recommend/AELZ0UeMz8K11Zg7pEXC">SuWei Cloud</a></strong>
+    </td>
+    <td align="center" width="20%">
+      <strong><a href="https://linux.do/t/topic/2578561">Linux DO</a></strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://www.cloudflare.com/"><img src="readme/cloudflare-logo.png" alt="Cloudflare logo" height="25"></a></td>
+    <td align="center"><a href="https://edgeone.ai/?from=github"><img src="readme/edgeone-logo.png" alt="EdgeOne logo" height="25"></a></td>
+    <td align="center"><a href="https://www.hncloud.com/activity/activity_2026summer.html?k=MarSeventh"><img src="readme/hncloud-logo.png" alt="HuaNa Cloud logo" height="25"></a></td>
+    <td align="center"><a href="https://www.svyun.com/recommend/AELZ0UeMz8K11Zg7pEXC"><img src="readme/svyun-logo.png" alt="SuWei Cloud logo" height="25"></a></td>
+    <td align="center"><a href="https://linux.do/t/topic/2578561"><img src="readme/linuxdo-logo.png" alt="Linux DO logo" height="25"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Provides CDN acceleration and security protection</sub></td>
+    <td align="center"><sub>Provides CDN acceleration and security protection</sub></td>
+    <td align="center"><sub>Provides stable and high-quality cloud computing resources</sub></td>
+    <td align="center"><sub>Provides stable and high-quality cloud computing resources</sub></td>
+    <td align="center"><sub>Provides community support</sub></td>
+  </tr>
+</table>
 
-[![recent update](https://recent-update.cfbed.sanyue.de/en)](https://cfbed.sanyue.de/en/guide/update-log.html)
+# 2. 🖥️ Demo
 
-# 3. Demo
+**Demo Address**: [CloudFlare ImgBed](https://cfbed.1314883.xyz/) · **Access Password**: `cfbed`
 
-**Demo Address**: [CloudFlare ImgBed](https://cfbed.1314883.xyz/) Access Password: `cfbed`
-
-![image-20250313204138886](readme/upload.png)
+![Upload Page](readme/upload.png)
 
 <details>
     <summary>Other page screenshots</summary>
-    
-![image-20250313204101984](readme/login.png)
 
-![image-20250313204138886](readme/uploading.png)
-
-![image-20250313204308225](readme/dashboard.png)
-
-![image-20250314152355339](readme/customer-config.png)
-
-![status-page](readme/status-page.png)
-
-![public-gallery](readme/public-gallery.png)
-
-
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <strong>Login Page</strong><br>
+      <img src="readme/login.png" alt="Login Page" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <strong>Upload Progress</strong><br>
+      <img src="readme/uploading.png" alt="Upload Progress" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <strong>File Management</strong><br>
+      <img src="readme/dashboard.png" alt="File Management" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <strong>User Management</strong><br>
+      <img src="readme/customer-config.png" alt="User Management" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <strong>Status Page</strong><br>
+      <img src="readme/status-page.png" alt="Status Page" width="100%">
+    </td>
+    <td align="center" width="50%">
+      <strong>Public Gallery</strong><br>
+      <img src="readme/public-gallery.png" alt="Public Gallery" width="100%">
+    </td>
+  </tr>
+</table>
 
 </details>
 
-# 4. Tips
+# 3. 📚 Documentation & Updates
 
-- Frontend is open source, see [MarSeventh/Sanyue-ImgHub](https://github.com/MarSeventh/Sanyue-ImgHub).
+## 📖 Documentation
 
-- Desktop software is open source, see [MarSeventh/satellite](https://github.com/MarSeventh/satellite).
+The documentation covers deployment, storage configuration, feature usage, RESTful API integration, WebDAV, version upgrades, and troubleshooting. Whether you are deploying the project for the first time or maintaining an existing instance, you can find the relevant instructions here.
 
-- **Ecosystem**: We welcome community participation in the ecosystem construction. Feel free to submit PRs or Issues, and high-quality content can be found on the [official ecosystem page](https://cfbed.sanyue.de/en/about/ecosystem.html).
+**[Read the full documentation →](https://cfbed.sanyue.de/en)**
 
-- **Sponsor**: Maintaining the project is not easy. If you like it, please support the author. Your support is the motivation to keep going~
+## 📝 Changelog
 
-  <a href="https://afdian.com/a/marseventh"><img src="https://img.shields.io/badge/AFDIAN-946CE6?style=for-the-badge&logo=afdian&logoColor=white" height="36" alt="Afdian"></a>&nbsp;&nbsp;<a href="readme/weixin-reward.png" target="_blank"><img src="https://img.shields.io/badge/WeChat_Pay-07c160?style=for-the-badge&logo=wechat&logoColor=white" height="36" alt="WeChat Pay"></a>&nbsp;&nbsp;<a href="readme/alipay-reward.png" target="_blank"><img src="https://img.shields.io/badge/Alipay-1677FF?style=for-the-badge&logo=alipay&logoColor=white" height="36" alt="Alipay"></a>
-  
-- **Sponsors**: Thanks to the following sponsors for supporting this project!
+Follow the latest features, bug fixes, compatibility changes, and upgrade notes.
 
-  [![sponsors](https://afdian-sponsors.sanyue.de/image?columns=12)](https://afdian.com/a/marseventh)
-  
-- **Contributors**: Thanks to the following contributors for their selfless contributions!
+[![Recent Updates](https://recent-update.cfbed.sanyue.de/en)](https://cfbed.sanyue.de/en/guide/update-log.html)
 
-  [![Contributors](https://contrib.rocks/image?repo=Marseventh/Cloudflare-ImgBed)](https://github.com/MarSeventh/CloudFlare-ImgBed/graphs/contributors)
+# 4. 🌱 Ecosystem
 
-# 5. Star History
+An open-source ecosystem grows through community support. Visit the [CloudFlare ImgBed Ecosystem](https://cfbed.sanyue.de/en/about/ecosystem.html) page to explore the following resources and more:
 
-**If you like the project, please give a free star✨✨✨, thank you very much!**
+- **Plugin Extensions**: Browser extensions, integrations for Typecho, WordPress, and Obsidian, OpenList drivers, and more.
+- **Companion Applications**: Desktop clients, bot tools, and more.
+- **AI Agent Applications**: Official project skills and related tools.
+- **Tutorials and Guides**: High-quality videos and articles from content creators.
 
-<a href="https://www.star-history.com/?repos=MarSeventh%2FCloudFlare-ImgBed%2CMarSeventh%2FSanyue-ImgHub&type=date&legend=top-left">
+Discover useful plugins, applications, and tutorials, or share your own work with the community. See the [Ecosystem Call for Contributions](https://github.com/MarSeventh/CloudFlare-ImgBed/discussions/606) for submission guidelines. We look forward to your participation!
+
+# 5. 💝 Support & Sponsors
+
+## ☕ Support the Project
+
+Maintaining an open source project takes time and effort. If CloudFlare ImgBed has helped you, consider supporting its continued development.
+
+<p align="center">
+  <a href="https://afdian.com/a/marseventh"><img src="https://img.shields.io/badge/AFDIAN-946CE6?style=for-the-badge&logo=afdian&logoColor=white" height="36" alt="Support via Afdian"></a>
+  &nbsp;&nbsp;
+  <a href="readme/weixin-reward.png"><img src="https://img.shields.io/badge/WeChat_Pay-07C160?style=for-the-badge&logo=wechat&logoColor=white" height="36" alt="Support via WeChat Pay"></a>
+</p>
+
+## 💖 Sponsors
+
+Thank you to every sponsor who supports this project! Your support helps sustain ongoing maintenance and drives the continued improvement of CloudFlare ImgBed.
+
+[![Sponsors](https://afdian-sponsors.sanyue.de/image?columns=12)](https://afdian.com/a/marseventh)
+
+# 6. 👥 Community
+
+## 🧑‍💻 Contributors
+
+Thank you to everyone who has contributed code, documentation, ideas, and feedback!
+
+[![Contributors](https://contrib.rocks/image?repo=Marseventh/Cloudflare-ImgBed)](https://github.com/MarSeventh/CloudFlare-ImgBed/graphs/contributors)
+
+## ⭐ Star History
+
+**If you find the project useful, please consider giving it a Star ⭐. Thank you for your support!**
+
+<a href="https://github.com/MarSeventh/CloudFlare-ImgBed">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=MarSeventh/CloudFlare-ImgBed%2CMarSeventh/Sanyue-ImgHub&type=date&theme=dark&legend=top-left&sealed_token=sAw_e7kRryMASKC9b3AqORk8leSZgKYTuCvYqOzqsyOmTse-00LgwOS4FtG75lHuCuxsyd-TPlyV3BieLloGaM-3M2AlLeQt2g1_Kczjm0UZdqnvVKRCR2J9oqdE0_XEKFMmOMLG_Loz8Bz3-JPKwiMyTjKM0LRRLm2TjGA73QSrTuOsRAqwj6F7LAVf" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=MarSeventh/CloudFlare-ImgBed%2CMarSeventh/Sanyue-ImgHub&type=date&legend=top-left&sealed_token=sAw_e7kRryMASKC9b3AqORk8leSZgKYTuCvYqOzqsyOmTse-00LgwOS4FtG75lHuCuxsyd-TPlyV3BieLloGaM-3M2AlLeQt2g1_Kczjm0UZdqnvVKRCR2J9oqdE0_XEKFMmOMLG_Loz8Bz3-JPKwiMyTjKM0LRRLm2TjGA73QSrTuOsRAqwj6F7LAVf" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=MarSeventh/CloudFlare-ImgBed%2CMarSeventh/Sanyue-ImgHub&type=date&legend=top-left&sealed_token=sAw_e7kRryMASKC9b3AqORk8leSZgKYTuCvYqOzqsyOmTse-00LgwOS4FtG75lHuCuxsyd-TPlyV3BieLloGaM-3M2AlLeQt2g1_Kczjm0UZdqnvVKRCR2J9oqdE0_XEKFMmOMLG_Loz8Bz3-JPKwiMyTjKM0LRRLm2TjGA73QSrTuOsRAqwj6F7LAVf" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://marseventh.github.io/CloudFlare-ImgBed/star-history-dark.svg" />
+   <source media="(prefers-color-scheme: light)" srcset="https://marseventh.github.io/CloudFlare-ImgBed/star-history-light.svg" />
+   <img alt="Star-History" src="https://marseventh.github.io/CloudFlare-ImgBed/star-history-light.svg" />
  </picture>
 </a>
 
-# 6. Special Sponsors
+# 7. ⚖️ License & Related Projects
 
-- **[CloudFlare](https://www.cloudflare.com/) & [EdgeOne](https://edgeone.ai/?from=github)**: Provides CDN acceleration, and security protection
+## 📄 License
 
-  <a href="https://www.cloudflare.com"><img src="readme/cloudflare-logo.png" alt="Cloudflare Logo" height="25"></a> <a href="https://edgeone.ai/?from=github"><img src="readme/edgeone-logo.png" alt="Tencent Logo" height="25"></a>
+> [!IMPORTANT]
+> This project is licensed under the [MIT License](LICENSE). You may use, modify, and distribute it, provided that the original copyright and license notices are retained in all copies or substantial portions of the software.
 
-- **[Svyun](https://www.svyun.com/recommend/AELZ0UeMz8K11Zg7pEXC)**: Provides cloud computing resources support
+## 🔗 Related Open Source Projects
 
-- **[Linux DO](https://linux.do/)**: New Ideal Community
+- **Web frontend**: [MarSeventh/Sanyue-ImgHub](https://github.com/MarSeventh/Sanyue-ImgHub)
+- **Desktop client**: [MarSeventh/satellite](https://github.com/MarSeventh/satellite)
+- **Upstream project**: [cf-pages/Telegraph-Image](https://github.com/cf-pages/Telegraph-Image)
+
+CloudFlare ImgBed evolved from Telegraph-Image. Thanks to its original authors and contributors.
