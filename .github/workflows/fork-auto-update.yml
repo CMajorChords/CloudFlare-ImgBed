@@ -1,0 +1,39 @@
+name: Automatic upstream updates
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      confirm_breaking_update:
+        description: "Confirm that any upstream compatibility notice has been reviewed"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-auto-update
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: ${{ github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout this fork with its dedicated synchronization key
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          ssh-key: ${{ secrets.UPSTREAM_SYNC_SSH_KEY }}
+
+      - name: Merge upstream and push to trigger Cloudflare Pages
+        env:
+          UPSTREAM_REPO: MarSeventh/CloudFlare-ImgBed
+          BREAKING_MANIFEST_PATH: ".github/breaking-updates/breaking-updates.json"
+          CONFIRM_BREAKING_UPDATE: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_breaking_update == true }}
+        run: python3 .github/fork-auto-update/sync.py
