@@ -109,6 +109,43 @@ describe('upload', () => {
         await Promise.all(waits);
     });
 
+    it('retains actual upload bytes for background tagging and ignores client previews', async () => {
+        let backgroundContext;
+        const route = await loadFunction('functions/upload/index.js', {
+            ...mocks,
+            endUpload: async context => { backgroundContext = context; },
+        });
+        const form = new FormData();
+        form.set('file', new File([png()], 'photo.png', { type: 'image/png' }));
+        form.set('autoTagPreview', 'data:image/jpeg;base64,/9j/2Q==');
+        const response = await route.onRequest(context('https://test/upload?uploadChannel=cfr2', form));
+        assert.equal(response.status, 200);
+        await Promise.all(waits);
+        assert.equal(backgroundContext.autoTagPreview, undefined);
+        assert.deepEqual(new Uint8Array(await backgroundContext.formdata.get('file').arrayBuffer()), png());
+    });
+
+    it('returns the upload result before the real background tail finishes AI tagging', async () => {
+        let release, started = false, finished = false;
+        const gate = new Promise(resolve => { release = resolve; });
+        const tail = await loadFunction('functions/upload/uploadTools.js', {
+            purgeRandomFileListCache: async () => {}, purgePublicFileListCache: async () => {}, purgeCFCache: async () => {},
+            addFileToIndex: async () => ({ success: true }),
+            autoTagUploadedFile: async () => { started = true; await gate; finished = true; },
+        });
+        const route = await loadFunction('functions/upload/index.js', { ...mocks, endUpload: tail.endUpload });
+        const form = new FormData();
+        form.set('file', new File([png()], 'photo.png', { type: 'image/png' }));
+        try {
+            const response = await route.onRequest(context('https://test/upload?uploadChannel=cfr2', form));
+            assert.equal(response.status, 200);
+            assert.ok((await response.json())[0].src);
+            assert.equal(started, true);
+            assert.equal(finished, false);
+        } finally { release(); await Promise.all(waits); }
+        assert.equal(finished, true);
+    });
+
     for (const channel of ['cfr2', 's3', 'webdav']) {
         for (const [type, expected] of [['application/octet-stream; charset=binary', 'image/png'], ['application/pdf; name=Test', 'application/pdf; name=test']]) {
             it(`stores consistent metadata and upstream headers for ${channel}: ${type}`, async () => {
@@ -293,11 +330,13 @@ describe('upload', () => {
                 assert.equal(storage.contentType, expected);
                 assert.equal((await db.getWithMetadata(`chunk_${uploadId}_000`)).metadata.status, 'completed');
 
-                const merge = await loadFunction('functions/upload/chunkMerge.js', { ...mocks, ...chunk });
+                const completed = [];
+                const merge = await loadFunction('functions/upload/chunkMerge.js', { ...mocks, ...chunk, endUpload: async (ctx, id) => { completed.push({ id, preview: ctx.autoTagPreview }); } });
                 const mergeForm = new FormData();
                 mergeForm.set('originalFileName', 'photo.png');
                 mergeForm.set('uploadId', uploadId);
                 mergeForm.set('totalChunks', '1');
+                mergeForm.set('autoTagPreview', 'data:image/jpeg;base64,/9j/2Q==');
                 // No MIME in merge request: reuse the type stored in the session.
                 uploadContext.request = new Request(uploadContext.url, { method: 'POST', body: mergeForm });
                 const merged = await merge.handleChunkMerge(uploadContext);
@@ -311,6 +350,7 @@ describe('upload', () => {
                 assert.equal(metadata.FileType, expected);
                 assert.equal(metadata.FileSizeBytes, 24);
                 await Promise.all(waits);
+                assert.deepEqual(completed, [{ id: src.slice('/file/'.length), preview: undefined }]);
             });
         }
     }
@@ -330,6 +370,7 @@ describe('upload', () => {
 
     it('normalizes HuggingFace direct-upload naming and committed metadata', async () => {
         let namedType;
+        let backgroundContext;
         const getUrl = await loadFunction('functions/upload/huggingface/getUploadUrl.js', {
             ...mocks,
             buildUniqueFileId: async (ctx, name, type) => { namedType = type; return name; },
@@ -339,11 +380,15 @@ describe('upload', () => {
         assert.equal(initialized.status, 200, await initialized.clone().text());
         assert.equal(namedType, 'image/png');
         const { fullId, filePath } = await initialized.json();
-        const commit = await loadFunction('functions/upload/huggingface/commitUpload.js', mocks);
-        const response = await commit.onRequestPost(context('https://test/upload/huggingface/commitUpload', JSON.stringify({ ...body, fullId, filePath })));
+        const commit = await loadFunction('functions/upload/huggingface/commitUpload.js', {
+            ...mocks, endUpload: async ctx => { backgroundContext = ctx; },
+        });
+        const response = await commit.onRequestPost(context('https://test/upload/huggingface/commitUpload', JSON.stringify({ ...body, fullId, filePath, autoTagPreview: 'data:image/jpeg;base64,/9j/2Q==' })));
         assert.equal(response.status, 200, await response.clone().text());
         assert.equal((await db.getWithMetadata(fullId)).metadata.FileType, 'image/png');
         await Promise.all(waits);
+        assert.equal(backgroundContext.autoTagPreview, undefined);
+        assert.ok(backgroundContext.request);
     });
 
 });

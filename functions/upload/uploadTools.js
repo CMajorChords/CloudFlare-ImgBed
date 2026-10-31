@@ -4,6 +4,7 @@ import { addFileToIndex } from "../utils/indexManager.js";
 import { getDatabase } from '../utils/databaseAdapter.js';
 import { resolveFileExt } from '../utils/mimeTypes.js';
 import { isUploadFormatAllowed } from '../utils/uploadFormat.js';
+import { autoTagUploadedFile } from '../utils/ai/uploadTags.js';
 export { isExtValid, resolveFileExt } from '../utils/mimeTypes.js';
 
 // 统一的响应创建函数
@@ -385,6 +386,9 @@ export async function endUpload(context, fileId, metadata) {
 
     // 更新文件索引（索引更新时会自动计算容量统计）
     await addFileToIndex(context, fileId, metadata);
+
+    // 自动标签属于上传后的后台增强任务，任何失败都不得改变上传结果。
+    await autoTagUploadedFile(context, fileId, metadata);
 }
 
 // 从 request 中解析 ip 地址

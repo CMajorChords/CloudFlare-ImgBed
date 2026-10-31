@@ -86,12 +86,14 @@ export class DiscordAPI {
      * @param {number} maxRetries - 最大重试次数（默认 3 次）
      * @returns {Promise<Object|null>} 消息数据或 null
      */
-    async getMessage(channelId, messageId, maxRetries = 3) {
+    async getMessage(channelId, messageId, maxRetries = 3, { signal } = {}) {
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             try {
+                signal?.throwIfAborted();
                 const response = await fetch(`${this.baseURL}/channels/${channelId}/messages/${messageId}`, {
                     method: 'GET',
-                    headers: this.defaultHeaders
+                    headers: this.defaultHeaders,
+                    signal
                 });
 
                 // 429 速率限制：等待后重试
@@ -114,6 +116,7 @@ export class DiscordAPI {
                 const messageData = await response.json();
                 return messageData;
             } catch (error) {
+                if (signal) throw error;
                 console.error('Error getting Discord message:', error.message);
                 if (attempt < maxRetries) {
                     await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
@@ -131,8 +134,8 @@ export class DiscordAPI {
      * @param {string} messageId - 消息 ID
      * @returns {Promise<string|null>} 文件 URL 或 null
      */
-    async getFileURL(channelId, messageId) {
-        const message = await this.getMessage(channelId, messageId);
+    async getFileURL(channelId, messageId, { signal, maxRetries = 3 } = {}) {
+        const message = await this.getMessage(channelId, messageId, maxRetries, { signal });
         
         if (message && message.attachments && message.attachments.length > 0) {
             return message.attachments[0].url;

@@ -16,7 +16,9 @@ describe('deployment runtime', () => {
             };
             const response = await onRequest(context);
             assert.equal(context.env.SERVER_RUNTIME, runtime);
-            assert.equal((await response.json()).serverRuntime, runtime);
+            const body = await response.json();
+            assert.equal(body.serverRuntime, runtime);
+            assert.equal(body.autoTagOnUpload, undefined);
         });
     }
 });

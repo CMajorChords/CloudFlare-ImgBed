@@ -506,10 +506,11 @@ export class HuggingFaceAPI {
     /**
      * 获取文件内容（用于私有仓库代理）
      */
-    async getFileContent(filePath) {
-        const fileUrl = `${this.baseURL}/datasets/${this.repo}/resolve/main/${filePath}`;
+    async getFileContent(filePath, { signal } = {}) {
+        const fileUrl = `${this.baseURL}/datasets/${this.repo}/resolve/main/${filePath.split('/').map(encodeURIComponent).join('/')}`;
         return await fetch(fileUrl, {
-            headers: this.isPrivate ? { 'Authorization': `Bearer ${this.token}` } : {}
+            headers: this.isPrivate ? { 'Authorization': `Bearer ${this.token}` } : {},
+            signal
         });
     }
 

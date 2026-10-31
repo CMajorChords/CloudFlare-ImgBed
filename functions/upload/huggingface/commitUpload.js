@@ -148,7 +148,8 @@ export async function onRequestPost(context) {
             env,
             waitUntil,
             uploadConfig,
-            url
+            url,
+            request
         };
         waitUntil(endUpload(uploadContext, fullId, metadata));
 
